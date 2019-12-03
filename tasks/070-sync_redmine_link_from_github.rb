@@ -13,7 +13,7 @@ project.current_tasks.each do |task|
   if task.github_links?
     task.github_links.each do |github_link|
       begin
-        pr = GithubPr.new(github_link.url, github_username, github_password)
+        pr = GithubPr.load(github_link.url, github_username, github_password)
       rescue
         logger.error "invalid github URL #{github_link.url}, skipping"
         next

@@ -1,9 +1,11 @@
 class GithubPr
-  attr_reader :url
   GITHUB_API_FQDN = "https://api.github.com"
 
+  def initialize(attrs)
+    @attrs = attrs
+  end
   # url expecterd in format https://github.com/theforeman/foreman/pull/123
-  def initialize(url, username = '', password = '')
+  def self.load(url, username = '', password = '')
     data = url.match /\Ahttps:\/\/github.com\/(.*)\/(.*)\/pull\/(\d+)\Z/
     if data
       owner, repository, pr_number = data[1], data[2], data[3]
@@ -11,11 +13,11 @@ class GithubPr
       logger.error "Invalid github PR link #{url}, skipping"
       raise "invalid github URL"
     end
-    @url = "/repos/#{owner}/#{repository}/pulls/#{pr_number}"
+    pr_url = "/repos/#{owner}/#{repository}/pulls/#{pr_number}"
     connection = Faraday.new(GITHUB_API_FQDN)
     connection.basic_auth(username, password) unless username.empty? && password.empty?
-    response = connection.get(@url)
-    @attrs = JSON.parse(response.body)
+    response = connection.get(pr_url)
+    self.new(JSON.parse(response.body))
   end
 
   def id
@@ -73,6 +75,10 @@ class GithubPr
 
   def labels
     @attrs.fetch('labels', []).map { |label| label['name'] }
+  end
+
+  def url
+    @attrs.fetch('html_url')
   end
 
   private

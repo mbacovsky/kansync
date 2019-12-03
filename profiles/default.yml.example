@@ -52,6 +52,9 @@ configuration:
       - waiting_on_contributor
       - needs_rebase
   070-sync_redmine_link_from_github: {}
+  080-new-github-prs:
+    color: 'yellow'
+    column: 'In review'
   100-sync_bz_link_from_redmine: {}
   150-set_assignee_according_to_redmine:
     # redmine user name: kanboard user name
@@ -62,7 +65,7 @@ configuration:
       # kanboard column: redmine state id, see task 200 for ids meanings
       Backlog: [1, 2, 9, 11, 8]
       Review: [7]
-      Done: [4, 5]
+      Done: [4, 5, 10]
     blockers:
       # don't move tasks to review column if it has tag woc or it must be rebased or if it's already in done column
       Review:
@@ -71,6 +74,7 @@ configuration:
       # never move task to backlog automatically, once it's already in progress
       Backlog:
         column: ['Work in progress']
+    ensure_triaged: false
   600-sync_bz_bugs_to_triage:
     color: 'amber'
     tag: 'Triage'

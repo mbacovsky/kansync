@@ -32,13 +32,13 @@ project.current_tasks.each do |task|
   tags = task.github_links.map do |github_link|
     if task.github_links?
       begin
-        pr = GithubPr.new(github_link.url, github_username, github_password)
+        pr = GithubPr.load(github_link.url, github_username, github_password)
       rescue
         logger.error "invalid github URL #{github_link.url}, skipping"
         next
       end
 
-      custom_labels = pr.needs_rebase? ? ['needs_rebase'] : []
+      custom_labels = pr.needs_rebase? ? ['needs_update'] : []
       custom_labels + pr.labels
     end
   end

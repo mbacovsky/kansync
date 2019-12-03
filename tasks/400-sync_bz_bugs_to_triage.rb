@@ -64,7 +64,7 @@ end
 # remove tasks that were already triaged
 logger.info('Checking tasks that were already triaged')
 existing_triage_tasks.each do |task|
-  if (task.bugzilla_ids & bz_ids_to_triage).empty?
+  if !task.bugzilla_ids.empty? && (task.bugzilla_ids & bz_ids_to_triage).empty?
     logger.info("Task #{task.id} was already triaged. Moving it to the #{default_configuration['done_column']} column")
     task.move_to_column(default_configuration['done_column'])
   end

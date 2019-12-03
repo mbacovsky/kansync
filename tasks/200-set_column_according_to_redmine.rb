@@ -23,8 +23,13 @@ redmine_statuses = {
 task_configuration = {
     'blockers' => {},
     'map' => {},
+    'ensure_triaged' => false,
 }.merge(task_configuration)
 map = task_configuration['map']
+
+def ensure_triaged(issue)
+  logger.warn "Issue #{issue.url} is not marked as triaged" unless issue.triaged
+end
 
 project.current_tasks.each do |task|
   logger.info "Processing #{task.title}"
@@ -34,6 +39,7 @@ project.current_tasks.each do |task|
 
     kanboard_columns = task.redmine_links.map do |redmine_link|
       issue = RedmineIssue.new(redmine_link.url)
+      ensure_triaged(issue) if task_configuration['ensure_triaged']
       found = map.find { |_, status_ids| status_ids.include?(issue.status_id) }
       logger.error "Couldn't find column name for #{redmine_link.url} and its status id #{issue.status_id}, map of redmine states needs to be updated!" if found.nil?
       found

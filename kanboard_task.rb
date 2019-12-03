@@ -6,6 +6,7 @@ class KanboardTask < KanboardResource
   BUGZILLA_URL = 'bugzilla.redhat.com'
 
   def self.create(params)
+    params['title'] = params['title'].truncate(200)
     id = connection.request('createTask', params)
     new connection.request('getTask', 'task_id' => id)
   end
@@ -26,7 +27,7 @@ class KanboardTask < KanboardResource
   end
 
   def move_to_top
-    move_to_position(1)
+    move_to_position(1) unless @params['position'] == 1
   end
 
   def redmine_links?
@@ -56,7 +57,7 @@ class KanboardTask < KanboardResource
   end
 
   def bugzilla_links
-    external_links.select { |link| link.url.include?(BUGZILLA_URL)}
+    external_links.select { |link| link.url =~ /.*#{BUGZILLA_URL}.*id=\d+/ }
   end
 
   def bugzilla_ids
@@ -70,7 +71,7 @@ class KanboardTask < KanboardResource
   def sync_bugzilla_links
     return unless redmine_links?
     redmine_issues.map do |redmine_issue|
-      next if redmine_issue.bugzilla_id.empty?
+      next if redmine_issue.bugzilla_id.nil? || redmine_issue.bugzilla_id.empty?
       next if links?(redmine_issue.bugzilla_link)
       create_link(redmine_issue.bugzilla_link, 'bugzilla')
     end
@@ -110,7 +111,9 @@ class KanboardTask < KanboardResource
 
   def move_to_column(name)
     column_id = KanboardColumn.find_by_name(project_id, name).id
-    connection.request('moveTaskPosition', { 'project_id' => project_id, 'task_id' => @id, 'column_id' => column_id, 'position' => 1, 'swimlane_id' => swimlane_id})
+    if column_id != @params['column_id']
+      connection.request('moveTaskPosition', { 'project_id' => project_id, 'task_id' => @id, 'column_id' => column_id, 'position' => 1, 'swimlane_id' => swimlane_id})
+    end
   end
 
   def move_to_swimlane(name)
